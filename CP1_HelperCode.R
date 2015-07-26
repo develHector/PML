@@ -320,4 +320,9 @@ pml_write_files( answers )
 
 
 
+# Assignment manual generation
+library(knitr)
+knit2html("CP1_PracticalMachineLearning.Rmd")
+setwd(".\\8. Machine Learning")
+getwd()
     
