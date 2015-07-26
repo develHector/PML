@@ -2,7 +2,7 @@
 title: "Practical Machine Learning"
 author: "develHector"
 date: "07/20/2015"
-output: pdf_document
+output: html_document
 subtitle: Course Project Write-up
 ---
 
@@ -24,6 +24,8 @@ registerDoParallel( cores = Cores )
 
 ##1. How the model was built##
 
+Through four basic steps:
+
 ###1.1 Basic Exploratory Data Analysis###
 Before identifying what kind of Machine Learning method was suited best, first of all, in order to get an idea of what we were supposed to do, my start was to perform a visual checking and navigating of what kind of data was there. For example with the **str** command:
 
@@ -37,7 +39,7 @@ Read the Data   [list output truncated]
 ```
 That gave an idea of the data being extremely highly-dimensional (i.e. too many classes and value possibilities) including several factor variables, numerical ones, negative numbers and Na's, making the basic linear algorithms maybe not suited for this problem.
 
-###1.3 Data Cleaning and Completing###
+###1.2 Data Cleaning and Completing###
 
 Visually reviewing the training data initially shows that there are a certain number of columns with pure NA values. So, I removed them under the assumption that those were irrelevant for our study:
 
@@ -84,7 +86,7 @@ training.complete$num_window = NULL ;
 1. Principal Component Analysis was evaluated, but I found the accuracy of a basic learning algorithm drastically reduced, you can see the details on how that was performed.  
 2. Highly Correlated Predictors analysis was also checked, but I found it unnecessary that step since it benefited not that greatly to the current number of classes and time was a resource I started to get short of.
 
-###1.4 Subset Training Data just for initial Method Selection###
+###1.3 Method Candidacy###
 
 With a reduced training sub-set of data (20% sub-partition) would lead me to train quickly and identify what required for me to easily choose a method. Then, after that, with a method already chosen, then re-train a fit model again with the whole training set.
 
@@ -93,8 +95,6 @@ With a reduced training sub-set of data (20% sub-partition) would lead me to tra
 Partition0 <- caret::createDataPartition( y = training.complete$classe, p = 0.20, list = FALSE ) ;
 training.Partition0 <- training.complete[ Partition0,  ] ;
 ```
-
-###1.2 Method Selection Process###
 
 Under the practical impossibility of either knowing in advance or checking each of the almost 200 methods available in caret, in order to choose who may fit best to this particular case, so, I took a small list of those seen at the class or quizzes or related ones, and evaluated its **Accuracy**, it's **Speed of Training** and it's **Standard Errror** versus each other.
 
@@ -105,7 +105,11 @@ You will see on the code that I systematically evaluated the following methods, 
 - Linear Discriminant Analysis **lda** produced high accuracy, low p-value of rejection, and quite fast to train.
 - Stochastic Gradient Boosting **gbm** produced great accuracy and low p-value of rejection, but really slow to train.
 - The Basic Random Forest one **rf** also high accuracy but also quite slow.
-- The one I liked the most was the **treebag** CART, which ended up being accurate, fast and low error prone.
+- The one I liked the most was the **treebag** CART, which ended up being accurate.
+
+###1.4 Method Selection###
+
+Was not an easy task, but I found **treebag** CART accurate, fast and low error prone, as much as other ones, but I decided for this one based on the comparison with the others I evaluated. After some recursion testing, I found **lda** to be as well suited for the case, but I was not completely clear on it's internals, reason why I decided to stick with **treebag**.
 
 The situation with **treebag** is that it demands cross validation as its nature calls for increased over-fitting possibilities and even bias extension or conservation instead of good accuracy.
 
