@@ -1,3 +1,9 @@
+
+# CP1_HelperCode.R 
+# Source code created for the Practical Machine Learning module of Data Science coursera program
+# Jul 2015
+# develHector
+
 rm(list=ls())
 getwd()
 
