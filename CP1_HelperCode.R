@@ -106,29 +106,30 @@ preProcPCA <- caret::preProcess( training.Partition0[,-length(names(training.Par
 preProcPCA
 trainPCA <- stats::predict( preProcPCA, training.Partition0[,-length(names(training.Partition0))] )
 trainPCA
+
 # Sounds great to get only the principals, but the accuracy gets drammatically reduced
-modFit.rpart.nzv.PCA <- caret::train( training.Partition0$classe ~ ., method = "treebag", data = trainPCA, na.action = na.roughfix, verbose=FALSE ) 
-modFit.rpart.nzv.PCA$results$Accuracy
+modFit.rpart.PCA <- caret::train( training.Partition0$classe ~ ., method = "treebag", data = trainPCA, na.action = na.roughfix, verbose=FALSE ) 
+modFit.rpart.PCA$results$Accuracy
 # [1] 0.2866122 
 
 ###################################################################################################################################
 # Failed methods
 modFit.glm <- caret::train( classe ~ . , method = "glm", data = training.Partition0, na.action = na.roughfix, verbose=FALSE )
-modFit.rpart.nzv <- caret::train( classe ~ ., method = "rpart", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) 
-system.time( modFit.rpart.nzv <- caret::train( classe ~ ., method = "rpart2", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
+modFit.rpart <- caret::train( classe ~ ., method = "rpart", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) 
+system.time( modFit.rpart <- caret::train( classe ~ ., method = "rpart2", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
 
 
 ###################################################################################################################################
 # Linear Discriminant Analysis
 # install.packages("MASS")
 library(MASS)
-system.time( modFit.rpart.nzv <- caret::train( classe ~ ., method = "lda", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
+system.time( modFit.rpart <- caret::train( classe ~ ., method = "lda", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
 #   user  system elapsed 
 # 102.755   2.385   1.268 
    
-modFit.rpart.nzv$finalModel
-modFit.rpart.nzv
-cm <- predict( modFit.rpart.nzv, newdata = training.Partition0, na.action = na.roughfix )
+modFit.rpart$finalModel
+modFit.rpart
+cm <- predict( modFit.rpart, newdata = training.Partition0, na.action = na.roughfix )
 confusionMatrix( training.Partition0$classe, cm  )
 
 #               Accuracy : 1          
@@ -143,13 +144,13 @@ library(splines)
 # install.packages("gbm")
 library(gbm)
 
-system.time( modFit.rpart.nzv <- caret::train( classe ~ ., method = "gbm", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) ) 
+system.time( modFit.rpart <- caret::train( classe ~ ., method = "gbm", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) ) 
 #    user  system elapsed 
 #    472.594   2.516  76.969 
 
-modFit.rpart.nzv$finalModel
-modFit.rpart.nzv
-cm <- predict( modFit.rpart.nzv, newdata = training.Partition0, na.action = na.roughfix )
+modFit.rpart$finalModel
+modFit.rpart
+cm <- predict( modFit.rpart, newdata = training.Partition0, na.action = na.roughfix )
 confusionMatrix( training.Partition0$classe, cm  )
 
 #               Accuracy : 1          
@@ -160,13 +161,13 @@ confusionMatrix( training.Partition0$classe, cm  )
 
 ###################################################################################################################################
 # Random Forest
-system.time( modFit.rpart.nzv <- caret::train( classe ~ ., method = "rf", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
+system.time( modFit.rpart <- caret::train( classe ~ ., method = "rf", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
 #  user  system elapsed 
 #  623.453   5.481  97.056 
     
-modFit.rpart.nzv$finalModel
-modFit.rpart.nzv
-cm <- predict( modFit.rpart.nzv, newdata = training.Partition0, na.action = na.roughfix )
+modFit.rpart$finalModel
+modFit.rpart
+cm <- predict( modFit.rpart, newdata = training.Partition0, na.action = na.roughfix )
 confusionMatrix( training.Partition0$classe, cm  )
 
 #               Accuracy : 1          
@@ -178,13 +179,13 @@ confusionMatrix( training.Partition0$classe, cm  )
 # Bagged CART - This one I liked     !   ##########################################################
 library(ipred)
 
-system.time( modFit.rpart.nzv <- caret::train( classe ~ ., method = "treebag", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
+system.time( modFit.rpart <- caret::train( classe ~ ., method = "treebag", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
 #  user  system elapsed 
 #  124.040   3.584   9.469 
     
-modFit.rpart.nzv$finalModel
-modFit.rpart.nzv
-cm <- predict( modFit.rpart.nzv, newdata = training.Partition0, na.action = na.roughfix )
+modFit.rpart$finalModel
+modFit.rpart
+cm <- predict( modFit.rpart, newdata = training.Partition0, na.action = na.roughfix )
 confusionMatrix( training.Partition0$classe, cm  )
 
 #               Accuracy : 1          
