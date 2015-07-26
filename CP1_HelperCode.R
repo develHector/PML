@@ -182,7 +182,7 @@ confusionMatrix( training.Partition0$classe, cm  )
 #    P-Value [Acc > NIR] : < 2.2e-16  
 
 ###################################################################################################
-# Bagged CART - This one I liked     !   ##########################################################
+# Bagged CART - This one I ended up choosing
 library(ipred)
 
 system.time( modFit.rpart <- caret::train( classe ~ ., method = "treebag", data = training.Partition0, na.action = na.roughfix, verbose=FALSE ) )
@@ -231,6 +231,8 @@ for( i in 1:length( training.TrainFolds ) )
     
   }
 
+# The following are the results, not code:
+
 Predicting k-fold 1
 Predicting k-fold 2
 Predicting k-fold 3
@@ -257,8 +259,9 @@ resultsPredict
 
 
 ###################################################################################################
-
-******************************************************************************
+# This next code ended up not working (the list was unable to store the objects)
+# But was intended for the case I need to return back to the process and don't want to pass through the learning time
+# I ended up not using it since everything worked at the first attempt
   
 modFitList <- list();
 for( i in 1:length( training.TrainFolds ) )
