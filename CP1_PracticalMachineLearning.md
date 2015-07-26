@@ -12,30 +12,12 @@ For the case the reader wants to replicate the whole process, it's been assumed 
 
 *PD: No graphs or plots needed for me, only data matrices, hoping those are not considered as figures.*
 
-```{r, echo=FALSE, message=FALSE }
-# install.packages("caret")
-library(caret)
 
-# install.packages("randomForest")
-library(randomForest)
-
-# install.packages("ipred")
-library(ipred)
-
-# install.packages("plyr")
-library(plyr)
-
-# Multicore Parallel Processing
-#install.packages("parallel") 
-library(parallel)
-
-#install.packages("doParallel")
-library(doParallel)
-```
 
 I also found useful the recommendation (thanks to the Discussion Forums) around using the parallel processing to exploit the maximum capacity of the computer, basically in order to accelerate the lengthy learning processes, so, I added the following lines to the beginning of my R scripting:
 
-```{r}
+
+```r
 Cores <- parallel::detectCores() ;
 registerDoParallel( cores = Cores )
 ```
@@ -45,10 +27,13 @@ registerDoParallel( cores = Cores )
 ###1.1 Basic Exploratory Data Analysis###
 Before identifying what kind of Machine Learning method was suited best, first of all, in order to get an idea of what we were supposed to do, my start was to perform a visual checking and navigating of what kind of data was there. For example with the **str** command:
 
-```{r, comment='Read the Data', cache=TRUE, echo=FALSE }
-testing <- read.csv( "~/data/ml/pml-testing.csv", header = TRUE ) ;
-training <- read.csv( "~/data/ml/pml-training.csv", header = TRUE ) ;
-str( training, list.len = 3 )
+
+```
+Read the Data 'data.frame':	19622 obs. of  160 variables:
+Read the Data  $ X                       : int  1 2 3 4 5 6 7 8 9 10 ...
+Read the Data  $ user_name               : Factor w/ 6 levels "adelmo","carlitos",..: 2 2 2 2 2 2 2 2 2 2 ...
+Read the Data  $ raw_timestamp_part_1    : int  1323084231 1323084231 1323084231 1323084232 1323084232 1323084232 1323084232 1323084232 1323084232 1323084232 ...
+Read the Data   [list output truncated]
 ```
 That gave an idea of the data being extremely highly-dimensional (i.e. too many classes and value possibilities) including several factor variables, numerical ones, negative numbers and Na's, making the basic linear algorithms maybe not suited for this problem.
 
@@ -56,62 +41,37 @@ That gave an idea of the data being extremely highly-dimensional (i.e. too many 
 
 Visually reviewing the training data initially shows that there are a certain number of columns with pure NA values. So, I removed them under the assumption that those were irrelevant for our study:
 
-```{r, echo=FALSE, comment='Training set dimensions before cleaning'  }
-dim( training ) ;
+
+```
+Training set dimensions before cleaning [1] 19622   160
 ```
 
 A zero-variance analysis was performed, but was found no classes to be candidate to be removed because of that technique. Also a removal of NZV's (near-zero-variance) variables was performed, but all accuracy estimations reduced visibly, even causing me an sad error on my evaluation submission, so I decided to stick with the simple NA removal which led me to a significant reduction of the irrelevant classes, see:
 
-```{r, comment='Remove NAs from training', echo=FALSE, warning=FALSE }
-# Remove columns with all NA values
-na.cols <- NULL ;
-for( i in 1:dim( training )[2] )
-{  
-  sum.nas <- sum( is.na( training[,i] ) ) ;
-  if( sum.nas != 0 )
-  {
-    na.cols <- c( na.cols, i ) ;
-  }  
-}
 
-training.complete <- training[ , -na.cols ] ;
-dim( training.complete )
+```
+Remove NAs from training [1] 19622    93
 ```
 
 As an extra NA column removal, I turned to numeric all those factor classes, and after that, extra columns were candidate to be removed, check the dimensions of the training data now and the final number of classes really reduced, significantly reducing complexity and learning time. The final data set with the training data already cleaned and completed ended up being called **training.complete**:
 
-```{r, cache=TRUE, echo=FALSE, warning=FALSE }
 
-for( i in 1:(dim( training.complete )[2]-1) )
-{ 
-  if ( class( training.complete[ , i ] ) == "factor" )
-  {
-    training.complete[ , i ] <- as.numeric( as.character( training.complete[ , i ] ) ) ;
-  }
-}
 
-na.cols <- NULL ;
-for( i in 1:dim( training.complete )[2] )
-{  
-  sum.nas <- sum( is.na( training.complete[,i] ) ) ;
-  if( sum.nas != 0 )
-  {
-    na.cols <- c( na.cols, i ) ;
-  }  
-}
 
-training.complete <- training.complete[ , -na.cols ] ;
+```r
+dim( training.complete )
 ```
 
-```{r, comment='Final training dataset after NA column removing process'}
-dim( training.complete )
+```
+Final training dataset after NA column removing process [1] 19622    57
 ```
 
 Later during the development and after a first training process, I needed to get back here because it was found that variables like counters and Time stamps were adding Standard Error to training measurements. Those identified as such were removed from the training data set as well.
 
 The **caret::varImp** function  kept on showing a strange 100% importance level on those kind of variables, that helped my turn the eye upon them and understand their mistake at considering them.
 
-```{r, comment='Re-clean the Data', echo=TRUE }
+
+```r
 training.complete$X = NULL ;
 training.complete$raw_timestamp_part_1 = NULL ;
 training.complete$raw_timestamp_part_2 = NULL ;
@@ -128,7 +88,8 @@ training.complete$num_window = NULL ;
 
 With a reduced training sub-set of data (20% sub-partition) would lead me to train quickly and identify what required for me to easily choose a method. Then, after that, with a method already chosen, then re-train a fit model again with the whole training set.
 
-```{r, cache=TRUE, echo=TRUE }
+
+```r
 Partition0 <- caret::createDataPartition( y = training.complete$classe, p = 0.20, list = FALSE ) ;
 training.Partition0 <- training.complete[ Partition0,  ] ;
 ```
@@ -154,7 +115,8 @@ Yes I removed the columns with pure NA values, but not those who contained both 
 
 For that it was done through k-fold cross validation, so I created 10 subsets of training and testing data with something like the following:
 
-```{r, echo=TRUE, eval=FALSE}
+
+```r
 training.TrainFolds <- createFolds( y=training.complete$classe, k=10, returnTrain=T )
 
 for( i in 1:length( training.TrainFolds ) ) { 
@@ -177,7 +139,8 @@ for( i in 1:length( training.TrainFolds ) ) {
 
 A cross-validation matrix showed all folds accuracy and other data, turned clear this was on the correct path:
 
-```{r, echo=TRUE, eval=FALSE}
+
+```r
     Accuracy     Kappa AccuracyLower AccuracyUpper AccuracyNull AccuracyPValue 
 1  0.9979613 0.9974214     0.9947883     0.9994442    0.2844037              0 
 2  0.9954105 0.9941954     0.9913057     0.9978993    0.2835288              0 
@@ -196,14 +159,20 @@ A cross-validation matrix showed all folds accuracy and other data, turned clear
 
 The possibility of error depends on the complement to the perfect accuracy. The worst case would be the probability of all our cross validation accuracy measurements to fail, which will imply a **4%** possibility of error on the worst case scenario (under a hypothetical case on where all outliers were present):
 
-```{r, echo=TRUE, eval=T}
+
+```r
 1 - ( 0.9979613 * 0.9954105 *  0.9943906 *  0.9959225 * 0.9969403 * 0.9949058 * 0.9928681 * 0.9969450 * 0.9969419 * 0.9969435 )
+```
+
+```
+## [1] 0.04004088
 ```
 ####Confusion Matrix on Training Dataset to Predict Out Sample Error####
 
 When we apply our full-trained model to the completed training data, we can produce the confusion matrix that quickly shows the number of values that were predicted incorrectly. On this case only **4 out of 19,622 cases** were incorrectly qualified, making us to believe that our model will turn to a **0.2%** of sample error can be produced:
 
-```{r, echo=TRUE, eval=F}
+
+```r
 Confusion Matrix and Statistics
 -------------------------------
 
@@ -222,7 +191,8 @@ After this was evaluated, I took the whole training set (already cleaned and com
 
 The Negative Predictive Value will portray our probability of produce results out of the expected value. You will see that in our case, that power is almost 100%.
 
-```{r, echo=TRUE, eval=F}
+
+```r
                      Class: A Class: B Class: C Class: D Class: E
 Sensitivity            0.9998   0.9997   0.9994   1.0000   1.0000
 Specificity            0.9999   0.9999   1.0000   0.9999   1.0000
@@ -246,7 +216,8 @@ Based on four main principles:
 
 And observing for the final "production" testing exactly same rules:
 
-```{r, echo=TRUE, eval=FALSE}
+
+```r
 # Model being created again with the cleaned Training dataset
 message( "Predicting Full Training Set" )
 modFit <- caret::train( classe ~ ., method = "treebag", data = training.complete, 
